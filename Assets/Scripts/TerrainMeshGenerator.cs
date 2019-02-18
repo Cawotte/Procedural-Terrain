@@ -11,20 +11,15 @@ public class TerrainMeshGenerator : MonoBehaviour
     
     public Gradient gradient;
 
-    private int xSize = 20;
-    private int zSize = 20;
+    //private int xSize = 20;
+    //private int zSize = 20;
 
     private Vector3[] vertices; //world point of vertices
     private int[] triangles; //Index of vertices of each triangles.
     private Color[] colors;
     private Mesh mesh;
     private MapGenerator mapGen;
-
-    public Vector3[] Vertices
-    {
-        get => vertices;
-    }
-    // Start is called before the first frame update
+    
     void Start()
     {
         mesh = new Mesh();
@@ -47,22 +42,19 @@ public class TerrainMeshGenerator : MonoBehaviour
     {
         if (mapGen.NoiseMap == null) mapGen.GenerateNoiseMap();
 
-        xSize = mapGen.Width;
-        zSize = mapGen.Height;
+        int xSize = mapGen.Width;
+        int zSize = mapGen.Height;
 
         //Get all vertices
         vertices = new Vector3[(xSize + 1) * (zSize+ 1)];
 
         Vector3 point;
-        //maxHeight = Mathf.NegativeInfinity;
-        //minHeight = Mathf.Infinity;
-        int i = 0;
 
-        for (int z = 0; z <= zSize; z++)
+        for (int z = 0, i = 0; z <= zSize; z++)
         {
             for (int x = 0; x <= xSize; x++)
             {
-                point = new Vector3(x, mapGen.HeightValue(z, x), z);
+                point = new Vector3(x, mapGen.HeightValue(x, z), z);
                 vertices[i++] = point;
             }
         }
@@ -103,15 +95,12 @@ public class TerrainMeshGenerator : MonoBehaviour
 
         //Get colors gradient
         colors = new Color[vertices.Length];
-        i = 0;
-        for (int z = 0; z <= zSize; z++)
+        for (int z = 0, i = 0 ; z <= zSize; z++)
         {
             for (int x = 0; x <= xSize; x++)
             {
-
-                colors[i] = mapGen.EvaluateGradientPoint(i);
-                //colors[i] = mapGen.Gradient.Evaluate(Mathf.InverseLerp(mapGen.MinHeight, mapGen.MaxHeight, vertices[i].y));
-                i++;
+                
+                colors[i++] = mapGen.EvaluateGradient(x, z);
             }
         }
     }
@@ -125,31 +114,8 @@ public class TerrainMeshGenerator : MonoBehaviour
 
         mesh.RecalculateNormals();
     }
-
+    
     /*
-    private float SampleOctaveNoise(float x, float y)
-    {
-        return SampleOctaveNoise(x, y, octaves, persistence, lacunarity, offset, new Vector2(scale, scale));
-    } */
-    private float SampleOctaveNoise(float x, float y, int octaves, float persistence, float lacunarity, Vector2 offset, Vector2 scale)
-    {
-        float total = 0f;
-        float frequency = 1f;
-        float amplitude = 1f;
-        float totalAmplitude = 0f;
-
-        Vector2 samplePos = new Vector2((x + offset.x) * scale.x, (y + offset.y) * scale.y);
-        for (int i = 0; i < octaves; i++)
-        {
-            total += Mathf.PerlinNoise(samplePos.x * frequency, samplePos.y * frequency) * amplitude;
-            totalAmplitude += amplitude;
-            amplitude *= persistence;
-            frequency *= lacunarity;
-        }
-        return total / totalAmplitude;
-
-    }
-
     private void OnDrawGizmos()
     {
         if (vertices == null || !Application.isPlaying)
@@ -157,12 +123,11 @@ public class TerrainMeshGenerator : MonoBehaviour
             return;
         }
 
-        return;
 
         for (int i = 0; i < vertices.Length; i++)
         {
             Gizmos.color = Color.green;
             Gizmos.DrawSphere(transform.position + vertices[i], 0.05f);
         }
-    }
+    } */
 }

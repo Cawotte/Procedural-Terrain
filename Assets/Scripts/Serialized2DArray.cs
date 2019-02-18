@@ -1,8 +1,14 @@
-﻿namespace Cawotte.Utils
+﻿
+
+namespace Cawotte.Utils
 {
+    using System;
+    using UnityEngine;
+
+    [Serializable]
     public class Serialized2DArray<T>
     {
-        private T[] array;
+        [SerializeField] private T[] array;
 
         private int width;
         private int height;
@@ -10,7 +16,8 @@
         #region Properties
         public int Height { get => height; }
         public int Width { get => width; }
-        public int Lenght { get => width * height; }
+        public int Length { get => width * height; }
+        public T[] Array { get => array; }
 
         public T this[int index]
         {

@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Cawotte.Utils;
 
 public class MapGenerator : MonoBehaviour
 {
@@ -9,6 +10,8 @@ public class MapGenerator : MonoBehaviour
     [Header("Terrain attributes")]
     [SerializeField] private int width = 50;
     [SerializeField] private int height = 50;
+    [SerializeField] private float minHeight = 0;
+    [SerializeField] private float maxHeight = 20;
     [SerializeField] private Gradient gradient;
 
     [Header("Noise")]
@@ -22,27 +25,21 @@ public class MapGenerator : MonoBehaviour
     public float scale = 0.1f;
     public Vector2 offset = Vector2.zero;
 
-    private float minHeight;
-    private float maxHeight;
-    private float[] noiseMap;
-
+    //private float[] noiseMap;
+    private Serialized2DArray<float> noiseMap;
+    [SerializeField] private float[] array;
 
     public Action OnMapChange = null;
 
-    public float[] NoiseMap { get => noiseMap; }
+    public Serialized2DArray<float> NoiseMap { get => noiseMap; }
+    
+
     public float MinHeight { get => minHeight; }
     public float MaxHeight { get => maxHeight; }
     public int Width { get => width; }
     public int Height { get => height; }
     public Gradient Gradient { get => gradient; }
-
-    public float this[int x, int y]
-    {
-        get
-        {
-            return NoiseMap[x + (y * width)];
-        }
-    }
+    
 
     private void OnValidate()
     {
@@ -52,87 +49,38 @@ public class MapGenerator : MonoBehaviour
         GenerateNoiseMap();
     }
 
-    public float[] GenerateNoiseMap()
+    public void GenerateNoiseMap()
     {
-        return GenerateNoiseMap(width, height);
+        GenerateNoiseMap(width, height);
     }
 
-    public float[] GenerateNoiseMap(int width, int height)
+    public void GenerateNoiseMap(int width, int height)
     {
-        noiseMap = new float[(width + 1) * (height + 1)];
-
-        float noiseValue;
-        maxHeight = Mathf.NegativeInfinity;
-        minHeight = Mathf.Infinity;
-
-        for (int i = 0, y = 0; y <= height; y++)
+        noiseMap = Noise.GenerateNoiseMap(width, height, octaves, persistence, lacunarity, offset, new Vector2(scale, scale));
+        /*
+        for (int y = 0; y <= height; y++)
         {
             for (int x = 0; x <= width; x++)
             {
-                
-                noiseValue = SampleOctaveNoise(x, y);
-                //noiseValue = Mathf.Lerp(0, 20, noiseValue);
-                noiseMap[i++] = noiseValue;
-
-                //Save min and max;
-                if (noiseValue > maxHeight) maxHeight = noiseValue;
-                else if (noiseValue < minHeight) minHeight = noiseValue;
+                noiseMap[x, y] = Mathf.Lerp(minHeight, maxHeight, noiseMap[x, y]);
             }
-        }
+        }*/
 
         OnMapChange?.Invoke();
 
-        return noiseMap;
+        array = noiseMap.Array;
+
     }
+    
 
     public float HeightValue(int x, int y)
     {
-        return Mathf.Lerp(0, 20, this[x, y]);
+        return Mathf.Lerp(minHeight, maxHeight, noiseMap[x, y]);
     }
 
-    public float HeightValue(int index)
+    public Color EvaluateGradient(int x, int y)
     {
-        return Mathf.Lerp(0, 20, noiseMap[index]);
+        return Gradient.Evaluate(noiseMap[x, y]);
     }
-
-    public Color EvaluateGradientPoint(int x, int y)
-    {
-        return Gradient.Evaluate(Mathf.InverseLerp(MinHeight, MaxHeight, noiseMap[y * width + x]));
-    }
-    public Color EvaluateGradientPoint(int index)
-    {
-        return Gradient.Evaluate(Mathf.InverseLerp(MinHeight, MaxHeight, noiseMap[index]));
-    }
-
-    public Color EvaluateGradient(float value)
-    {
-        return Gradient.Evaluate(Mathf.InverseLerp(MinHeight, MaxHeight, value));
-    }
-    public float NormalizedNoise(int index)
-    {
-        return Mathf.InverseLerp(minHeight, maxHeight, noiseMap[index]);
-    }
-    private float SampleOctaveNoise(float x, float y)
-    {
-        return SampleOctaveNoise(x, y, octaves, persistence, lacunarity, offset, new Vector2(scale, scale));
-    }
-
-    private static float SampleOctaveNoise(float x, float y, int octaves, float persistence, float lacunarity, Vector2 offset, Vector2 scale)
-    {
-        float total = 0f;
-        float frequency = 1f;
-        float amplitude = 1f;
-        float totalAmplitude = 0f;
-
-        Vector2 samplePos = new Vector2((x + offset.x) * scale.x, (y + offset.y) * scale.y);
-        for (int i = 0; i < octaves; i++)
-        {
-            total += Mathf.PerlinNoise(samplePos.x * frequency, samplePos.y * frequency) * amplitude;
-            totalAmplitude += amplitude;
-            amplitude *= persistence;
-            frequency *= lacunarity;
-        }
-        return total / totalAmplitude;
-
-    }
+    
 }

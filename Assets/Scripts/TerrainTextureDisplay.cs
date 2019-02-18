@@ -6,20 +6,17 @@ public class TerrainTextureDisplay : MonoBehaviour
 {
     [SerializeField] private Renderer textureRenderer = null;
     [SerializeField] private MapGenerator mapGen = null;
-    [SerializeField] private TerrainMeshGenerator meshGen = null;
     [Range(0.1f, 1f)]
     [SerializeField] private float scale = 1f;
+    
 
-    /*
-    [SerializeField] private float xScale2;
-    [SerializeField] private float yScale2;
-    [SerializeField] private float zScale2; */
     private MeshFilter meshFilter;
+
     private void Start()
     {
         meshFilter = GetComponent<MeshFilter>();
 
-        //mapGen.OnMapChange += () => StartCoroutine(UpdateNoiseTexture());
+        mapGen.OnMapChange += UpdateNoiseTexture;
         UpdateNoiseTexture();
     }
 
@@ -27,11 +24,11 @@ public class TerrainTextureDisplay : MonoBehaviour
     {
         if (Application.isPlaying && meshFilter != null)
         {
-            StartCoroutine(UpdateNoiseTexture());
+            UpdateNoiseTexture();
         }
     }
 
-    private IEnumerator UpdateNoiseTexture()
+    private void UpdateNoiseTexture()
     {
         Texture2D textureNoise = new Texture2D(mapGen.Width, mapGen.Height);
 
@@ -40,18 +37,10 @@ public class TerrainTextureDisplay : MonoBehaviour
         {
             for (int x = 0; x < mapGen.Width; x++)
             {
+                //Colors start from top right corner, so we need to fill it from the end.
                 int index = colors.Length - i - 1;
-                colors[i] = mapGen.EvaluateGradient(meshGen.Vertices[i].y);
-
-                //
-                textureNoise.SetPixel(x, y, colors[i]);
-                textureNoise.Apply();
-                textureRenderer.material.mainTexture = textureNoise;
-                meshFilter.mesh.RecalculateBounds();
-                ScaleTextureToScreen(scale);
-                yield return new WaitForSeconds(0.01f);
+                colors[index] = mapGen.EvaluateGradient(x, y);
                 i++;
-
                 //
             }
         }
@@ -67,10 +56,52 @@ public class TerrainTextureDisplay : MonoBehaviour
         textureNoise.Apply();
 
         textureRenderer.material.mainTexture = textureNoise;
-        meshFilter.mesh.RecalculateBounds();
+        //meshFilter.mesh.RecalculateBounds();
         ScaleTextureToScreen(scale);
 
     }
+
+    /*
+    private IEnumerator UpdateNoiseTexture()
+    {
+        Texture2D textureNoise = new Texture2D(mapGen.Width, mapGen.Height);
+
+        Color[] colors = new Color[mapGen.NoiseMap.Length];
+        for (int y = 0, i = 0; y < mapGen.Height; y++)
+        {
+            for (int x = 0; x < mapGen.Width; x++)
+            {
+                //Colors start from top right corner, so we need to fill it from the end.
+                int index = colors.Length - i - 1;
+                colors[i] = mapGen.EvaluateGradient(x, y);
+                
+                textureNoise.SetPixel(x, y, colors[i]);
+                textureNoise.Apply();
+                textureRenderer.material.mainTexture = textureNoise;
+                //meshFilter.mesh.RecalculateBounds();
+                ScaleTextureToScreen(scale);
+                yield return new WaitForSeconds(0.001f);
+                i++;
+
+                //
+            }
+        }
+        /*
+        for (int i = 0; i < colors.Length; i++)
+        {
+            colors[i] = mapGen.Gradient.Evaluate(mapGen.NormalizedNoise(mapGen.NoiseMap.Length - i - 1));
+
+            //colors[i] = mapGen.EvaluatePoint()
+        }
+
+        textureNoise.SetPixels(colors);
+        textureNoise.Apply();
+
+        textureRenderer.material.mainTexture = textureNoise;
+        //meshFilter.mesh.RecalculateBounds();
+        ScaleTextureToScreen(scale);
+
+    } */
 
     private void ScaleTextureToScreen(float scale)
     {
