@@ -29,7 +29,7 @@
         {
             this.width = width;
             this.height = height;
-            array = new T[width * height];
+            array = new T[(width + 1) * (height + 1)];
         }
         
     }
