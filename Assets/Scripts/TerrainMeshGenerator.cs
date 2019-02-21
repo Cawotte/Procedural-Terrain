@@ -4,21 +4,15 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(MeshFilter))]
-[RequireComponent(typeof(MapGenerator))]
 public class TerrainMeshGenerator : MonoBehaviour
 {
-
-    
-    public Gradient gradient;
-
-    //private int xSize = 20;
-    //private int zSize = 20;
+    [Header("Dependencies")]
+    [SerializeField] private MapGenerator mapGen = null;
 
     private Vector3[] vertices; //world point of vertices
     private int[] triangles; //Index of vertices of each triangles.
     private Color[] colors;
     private Mesh mesh;
-    private MapGenerator mapGen;
     
     void Start()
     {
