@@ -68,7 +68,7 @@ public class MapGenerator : MonoBehaviour
 
         OnMapChange?.Invoke();
 
-        array = noiseMap.Array;
+        //array = noiseMap.Array;
 
     }
     
